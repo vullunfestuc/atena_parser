@@ -75,6 +75,22 @@ publication_registers={
                    "c":"publishing date" 
                 }
 
+production_registers={
+                   "a":"place", 
+                   "b":"publisher",
+                   "c":"publishing date"
+}
+
+distribution_registers={
+                    "indicators":[
+                                {"#": "No intervention","2":"Intervening","3":"Current/last"},
+                                {"0":production_registers,"1":publication_registers,"2":"Distribution","3":"Manufacture","4":"Copyright notice date"}
+                                ],
+                   "a":"place", 
+                   "b":"producer",
+                   "c":"Production date" 
+                }
+
 phisical_description_registers={
                    "a":"extends", 
                    "c":"dimensions" 
@@ -91,6 +107,7 @@ marc_registers={"100":[author_registers,"author"],
                 "240":[original_registers,"original_title"],
                 "245":[title_registers,"title"],
                 "260":[publication_registers,"publication"],
+                "264":[distribution_registers,"publication"],
                 "250":"edition",
                 "300":[phisical_description_registers,"physical description"],
                 ""
@@ -115,10 +132,10 @@ def lookup_book_atena(paraula_clau):
     last_register_used=None
     for line in decoded_html.splitlines():
         #print(line)
-        splittedline=line.lstrip().rstrip().split()
+        splittedline=line.lstrip().rstrip().split(' ')
         register=splittedline[0]
         data=' '.join(splittedline[1:])
-        #print(register+":"+data)
+        print(register+":"+data)
 
         #print(marc_registers.keys())
         if register in marc_registers.keys():
@@ -126,19 +143,46 @@ def lookup_book_atena(paraula_clau):
                 
                 these_registers=marc_registers[register][0]
                 default_register=marc_registers[register][1]
+
+                #As I have discovered, these indicators might affect how we parse the data from the registers
+                #The indicators might be at the beggining of the data.
                 if "indicators" in these_registers.keys():
-                    skipped=len(these_registers['indicators'])
-                    data=data[skipped+1:]
+                    n_indicators=len(these_registers['indicators'])
+                    # indicators come after the number of the registers with a whitespace between them
+                    # if there are two whitespaces means that we have skipped first indicator, but the
+                    # second one has to be taken into account.
+                    for i in range(0,n_indicators):
+                        these_indicators=these_registers["indicators"][i]
+                        if data[i] in these_indicators.keys():
+                            current_indicator=these_indicators[str(data[i])]
+                            if type(current_indicator) is dict:
+                                these_registers=these_indicators[data[i]]
+                                break
+                            else:
+                                print("nothing to do")
+                    data=data[n_indicators+1:]
+
+                #parsing the real information.
                 info=data.split('|')
                 if len(info)>1:            
                     for indx,a in enumerate(info):
                         if a[0] in these_registers:
                             reg=these_registers[a[0]]
-                            book[reg]=a[1:].lstrip().rstrip()
+                            value=a[1:].lstrip().rstrip()
+                            # This section is because the name contains characters to be viewed by the web, but not in the
+                            # real information, such as a final / to spread author and title, etc.
+                            print(value)
+                            print(value[-1])
+                            if value[-1].isalnum() is False:
+                                value=value[:len(value)-1].lstrip().rstrip()
+                            book[reg]=value
                             last_register_used=reg
                         elif indx==0:
                             #the first element does not contain any key information, then using for this the default
-                            book[default_register]=a.lstrip().rstrip()
+                            value=a.lstrip().rstrip()
+                            if value[-1].isalnum() is False:
+                                value=value[:len(value)-1].lstrip().rstrip()
+                            book[default_register]=value
                             last_register_used=default_register
                 elif info[0] in these_registers.keys():
                     reg==these_registers[info[0]]
@@ -155,13 +199,13 @@ def lookup_book_atena(paraula_clau):
                 last_register_used=default_register
 
         elif re.search("^[0-9]{3}",register) is None:
-            print(re.search("^[0-9]{3}",register))
+            #print(re.search("^[0-9]{3}",register))
             #print("this line is not taken into account:"+register)
-            print(register)
-            print(line)
+            #print(register)
+            #print(line)
             if last_register_used is not None:
-                print(last_register_used)
-                print(line)
+                #print(last_register_used)
+                #print(line)
                 book[last_register_used]=book[last_register_used].replace('\n\r','').lstrip().rstrip()+" "+line.lstrip().rstrip()
         else:
             print("this register is not taken into account:"+register+" data:"+data)
