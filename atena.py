@@ -7,7 +7,7 @@ from fastapi import FastAPI
 import re
 
 import io
-from pymarc import * #doesn't work
+# from pymarc import * #doesn't work
 
 
 
@@ -133,47 +133,47 @@ excluded_registers_keys=["LEADER","008","035","040","041","084","090","336","337
 
 
 
-def marc_book_atena(paraula_clau):
-    global main_url
-    book={}
-    reference=book_url+"/C__"+paraula_clau+"?lang=cat&marcData=Y"
-    print(quote(reference))
+# def marc_book_atena(paraula_clau):
+#     global main_url
+#     book={}
+#     reference=book_url+"/C__"+paraula_clau+"?lang=cat&marcData=Y"
+#     print(quote(reference))
 
-    result=requests.get("http://"+quote(reference))
+#     result=requests.get("http://"+quote(reference))
     
-    decoded_html = result.text.lstrip().rstrip()
+#     decoded_html = result.text.lstrip().rstrip()
 
-    for l in decoded_html.splitlines():
-        print(l.encode('utf-8').hex())
-    #create the record field
-    last_register_used=None
-    for line in decoded_html.splitlines():
-        #print(line)
-        splittedline=line.lstrip().rstrip().split(' ')
-        register=splittedline[0]
-        data=' '.join(splittedline[1:])
-        print(register+":"+data)
+#     for l in decoded_html.splitlines():
+#         print(l.encode('utf-8').hex())
+#     #create the record field
+#     last_register_used=None
+#     for line in decoded_html.splitlines():
+#         #print(line)
+#         splittedline=line.lstrip().rstrip().split(' ')
+#         register=splittedline[0]
+#         data=' '.join(splittedline[1:])
+#         print(register+":"+data)
 
-    try:
-        myMarcData=pymarc.MARCReader(io.StringIO(decoded_html))
-    except Exception as err:
-        print(err)
-        return None
+#     try:
+#         myMarcData=pymarc.MARCReader(io.StringIO(decoded_html))
+#     except Exception as err:
+#         print(err)
+#         return None
 
-    #print(len(myMarcData))
-    print(myMarcData)
+#     #print(len(myMarcData))
+#     print(myMarcData)
 
-    for data in myMarcData:
-        if data is not None:
-            try:
-                print(data)
-            except Exception as err:
-                print(err)
-        else:
-            print("no record")
+#     for data in myMarcData:
+#         if data is not None:
+#             try:
+#                 print(data)
+#             except Exception as err:
+#                 print(err)
+#         else:
+#             print("no record")
 
-    #print(decoded_html.splitlines())
-    print("-----")
+#     #print(decoded_html.splitlines())
+#     print("-----")
 
 def lookup_book_atena(paraula_clau):
     #now we have all these books. Then extrait the extra information for all of them
@@ -405,12 +405,12 @@ async def root():
 
 
 
-@app.get("/marc")
-async def books(k=None):
-    if k is None or len(k)!=9:
-        return{"Error":"key word not present or too small"}
-    books= marc_book_atena(k)
-    return books
+# @app.get("/marc")
+# async def books(k=None):
+#     if k is None or len(k)!=9:
+#         return{"Error":"key word not present or too small"}
+#     books= marc_book_atena(k)
+#     return books
 
 @app.get("/book")
 async def books(k=None):
