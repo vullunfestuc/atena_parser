@@ -124,8 +124,8 @@ marc_registers={"100":[author_registers,["author",parse_author_name]],
                 "260":[publication_registers,"publication"],
                 "264":[distribution_registers,"publication"],
                 "250":"edition",
+                "520":"summary",
                 "300":[phisical_description_registers,"physical description"],
-                ""
                 "830":[series_registers,"series"]}
 
 excluded_registers_keys=["LEADER","008","035","040","041","084","090","336","337","338",]
