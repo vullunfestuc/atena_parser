@@ -71,14 +71,16 @@ author_registers={ "indicators":[
 
 title_registers={  "indicators":[
                                 {"0":"noadded","1":"added"},
-                                {"0":"nofilling"} #extra numbers will be filled with the number indicator
+                                {"0":"skipped chars"} #extra numbers will be filled with the number indicator
                                 ],
+                    "c":"description",
+
                    }
 
 original_registers={  
                     "indicators":[
                                 {"0":"noadded","1":"added"},
-                                {"0":"nofilling"} #extra numbers will be filled with the number indicator
+                                {"0":"skipped chars"} #extra numbers will be filled with the number indicator
                                 ],
                     "c":"description",
                    }
@@ -209,9 +211,10 @@ def lookup_book_atena(paraula_clau):
                     # indicators come after the number of the registers with a whitespace between them
                     # if there are two whitespaces means that we have skipped first indicator, but the
                     # second one has to be taken into account.
+                    current_indicator=None
                     for i in range(0,n_indicators):
                         these_indicators=these_registers["indicators"][i]
-                        if data[i] in these_indicators.keys():
+                        if data[i] in these_indicators.keys() and type(these_indicators[str(data[i])]) is dict:
                             current_indicator=these_indicators[str(data[i])]
                             if type(current_indicator) is dict:
                                 these_registers=these_indicators[str(data[i])]
@@ -242,11 +245,11 @@ def lookup_book_atena(paraula_clau):
                             #the first element does not contain any key information, then using for this the default
                             value=a.lstrip().rstrip()
                             if value[-1].isalnum() is False:
-                                value=value[:len(value)-1].lstrip().rstrip()
-                            if n_indicators==0:
-                                reg=default_register
-                            else:
+                                value=value[:len(value)-1].lstrip().rstrip()                               
+                            if n_indicators >0 and current_indicator is not None:
                                 reg=current_indicator
+                            else:
+                                reg=default_register
                             print(reg)
                             print(current_indicator)
                             if type(reg) is list:
