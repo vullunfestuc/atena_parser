@@ -58,6 +58,20 @@ def parse_author_name(name):
     return name
 
 
+def extract_pages_num(sentence):
+    if type(sentence) is not str:
+        return sentence
+    
+    splitted=sentence.split()
+
+    for data in splitted:
+        try:
+            pages=int(data)
+            return data
+        except:
+            print("DATA:"+data+" is not a number")
+
+
 
 
 
@@ -125,7 +139,7 @@ marc_registers={"100":[author_registers,["author",parse_author_name]],
                 "264":[distribution_registers,"publication"],
                 "250":"edition",
                 "520":"summary",
-                "300":[phisical_description_registers,"physical description"],
+                "300":[phisical_description_registers,["pages",extract_pages_num]],
                 "830":[series_registers,"series"]}
 
 excluded_registers_keys=["LEADER","008","035","040","041","084","090","336","337","338",]
