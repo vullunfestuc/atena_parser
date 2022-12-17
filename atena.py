@@ -217,7 +217,7 @@ def lookup_book_atena(paraula_clau):
                         if data[i] in these_indicators.keys() and type(these_indicators[str(data[i])]) is dict:
                             current_indicator=these_indicators[str(data[i])]
                             if type(current_indicator) is dict:
-                                these_registers=these_indicators[str(data[i])]
+                                these_registers=current_indicator
                                 break
                             # else:
                             #     print("nothing to do")
@@ -227,6 +227,7 @@ def lookup_book_atena(paraula_clau):
                 info=data.split('|')
                 if len(info)>1:            
                     for indx,a in enumerate(info):
+                        print(a)
                         if a[0] in these_registers:
                             reg=these_registers[a[0]]
                             value=a[1:].lstrip().rstrip()
@@ -246,20 +247,16 @@ def lookup_book_atena(paraula_clau):
                             value=a.lstrip().rstrip()
                             if value[-1].isalnum() is False:
                                 value=value[:len(value)-1].lstrip().rstrip()                               
-                            if n_indicators >0 and current_indicator is not None:
-                                reg=current_indicator
-                            else:
-                                reg=default_register
+                            reg=default_register
                             print(reg)
-                            print(current_indicator)
                             if type(reg) is list:
                                 value=reg[1](value)
                                 reg=reg[0]
                             book[reg]=value
                             last_register_used=reg
                 elif info[0] in these_registers.keys():
-                    reg==these_registers[info[0]]
-
+                    reg=these_registers[info[0]]
+                    print(reg)
                     if type(reg) is list:
                             value=reg[1](value)
                             reg=reg[0]
@@ -267,7 +264,14 @@ def lookup_book_atena(paraula_clau):
                     last_register_used=reg
 
                 else:
-                    book[default_register]=info[0].lstrip().rstrip()
+                    reg=default_register
+                    print(reg)
+                    if type(reg) is list:
+                            value=reg[1](info[0])
+                            reg=reg[0]
+                    else:
+                        value=info[0]
+                    book[reg]=value.lstrip().rstrip()
                     last_register_used=default_register
 
             else:
