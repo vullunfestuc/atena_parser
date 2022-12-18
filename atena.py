@@ -106,8 +106,8 @@ publication_registers={
 
 production_registers={
                    "a":"place", 
-                   "b":"publisher",
-                   "c":"publishing date"
+                   "b":"productor",
+                   "c":"production date"
 }
 
 distribution_registers={
@@ -189,6 +189,67 @@ excluded_registers_keys=["LEADER","008","035","040","041","084","090","336","337
 #     #print(decoded_html.splitlines())
 #     print("-----")
 
+
+def parse_info(info,these_registers,book,default_register):
+    print("parse info funct")
+    print(info)
+    print(these_registers)
+    print(default_register)
+    if len(info)>=1:            
+        for indx,a in enumerate(info):
+            print(a)
+            if a[0] in these_registers:
+                reg=these_registers[a[0]]
+                value=a[1:].lstrip().rstrip()
+                if type(reg) is list:
+                    value=reg[1](value)
+                    reg=reg[0]
+                    
+                # This section is because the name contains characters to be viewed by the web, but not in the
+                # real information, such as a final / to spread author and title, etc.
+                if value[-1].isalnum() is False:
+                    value=value[:len(value)-1].lstrip().rstrip()
+                book[reg]=value
+                previous_register_used=reg
+                last_registers_dict=these_registers
+            elif indx==0:
+                #the first element does not contain any key information, then using for this the default
+                value=a.lstrip().rstrip()
+                if value[-1].isalnum() is False:
+                    value=value[:len(value)-1].lstrip().rstrip()                               
+                reg=default_register
+                if type(reg) is list:
+                    value=reg[1](value)
+                    reg=reg[0]
+                book[reg]=value
+                previous_register_used=reg
+                last_registers_dict=None
+    elif info[0] in these_registers.keys():
+        print("first data is a key")
+        print(info[0])
+        reg=these_registers[info[0]]
+        print(reg)
+        if type(reg) is list:
+                value=reg[1](value)
+                reg=reg[0]
+        book[reg]=a[1:].lstrip().rstrip()
+        previous_register_used=reg
+        last_registers_dict=these_registers
+    else:
+        print("first data is nothign")
+        reg=default_register
+        print(reg)
+        if type(reg) is list:
+                value=reg[1](info[0])
+                reg=reg[0]
+        else:
+            value=info[0]
+        book[reg]=value.lstrip().rstrip()
+        previous_register_used=default_register
+        last_registers_dict=None
+
+    return [book,previous_register_used,last_registers_dict]
+
 def lookup_book_atena(paraula_clau):
     #now we have all these books. Then extrait the extra information for all of them
     global main_url
@@ -239,68 +300,26 @@ def lookup_book_atena(paraula_clau):
 
                 #parsing the real information.
                 info=data.split('|')
-                if len(info)>1:            
-                    for indx,a in enumerate(info):
-                        print(a)
-                        if a[0] in these_registers:
-                            reg=these_registers[a[0]]
-                            value=a[1:].lstrip().rstrip()
-                            print(type(reg))
-                            if type(reg) is list:
-                                value=reg[1](value)
-                                reg=reg[0]
-                                
-                            # This section is because the name contains characters to be viewed by the web, but not in the
-                            # real information, such as a final / to spread author and title, etc.
-                            if value[-1].isalnum() is False:
-                                value=value[:len(value)-1].lstrip().rstrip()
-                            book[reg]=value
-                            last_register_used=reg
-                        elif indx==0:
-                            #the first element does not contain any key information, then using for this the default
-                            value=a.lstrip().rstrip()
-                            if value[-1].isalnum() is False:
-                                value=value[:len(value)-1].lstrip().rstrip()                               
-                            reg=default_register
-                            print(reg)
-                            if type(reg) is list:
-                                value=reg[1](value)
-                                reg=reg[0]
-                            book[reg]=value
-                            last_register_used=reg
-                elif info[0] in these_registers.keys():
-                    reg=these_registers[info[0]]
-                    print(reg)
-                    if type(reg) is list:
-                            value=reg[1](value)
-                            reg=reg[0]
-                    book[reg]=a[1:].lstrip().rstrip()
-                    last_register_used=reg
+                [book,last_register_used,last_registers_dict]=parse_info(info,these_registers,book,default_register)
 
-                else:
-                    reg=default_register
-                    print(reg)
-                    if type(reg) is list:
-                            value=reg[1](info[0])
-                            reg=reg[0]
-                    else:
-                        value=info[0]
-                    book[reg]=value.lstrip().rstrip()
-                    last_register_used=default_register
 
             else:
                 default_register=marc_registers[register]
                 book[default_register]=data.rstrip().lstrip()
                 last_register_used=default_register
+                last_registers_dict=None
 
-        elif re.search("^[0-9]{3}",register) is None:
+        elif re.search("^[0-9]{3}",register) is None and last_register_used is not None:
             #print(re.search("^[0-9]{3}",register))
-            #print("this line is not taken into account:"+register)
-            #print(register)
-            #print(line)
-            if last_register_used is not None:
-                #print(last_register_used)
-                #print(line)
+            #first assure that in the begining and end there are no spurious whitespaces
+            line=line.lstrip().rstrip()
+            print("previously the marc register dict was:"+str(last_registers_dict))
+            print("this line is not taken into account:"+line+" everything will be set to "+last_register_used)
+            if(line.lstrip().rstrip()[0] is '|'):
+                #it starts a new section of previous registers...
+                info=line[1:].split('|')
+                [book,last_register_used,last_registers_dict]=parse_info(info,last_registers_dict,book,last_register_used)
+            else:
                 book[last_register_used]=book[last_register_used].replace('\n\r','').lstrip().rstrip()+" "+line.lstrip().rstrip()
         else:
             print("this register is not taken into account:"+register+" data:"+data)
