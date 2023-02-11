@@ -87,6 +87,7 @@ title_registers={  "indicators":[
                                 {"0":"noadded","1":"added"},
                                 {"0":"skipped chars"} #extra numbers will be filled with the number indicator
                                 ],
+                    "b":"subtitle",
                     "c":"description",
 
                    }
@@ -270,8 +271,6 @@ def lookup_book_atena(paraula_clau):
         register=splittedline[0]
         data=' '.join(splittedline[1:])
         print(register+":"+data)
-
-        #print(marc_registers.keys())
         if register in marc_registers.keys():
             if type(marc_registers[register]) is list:
                 
@@ -308,8 +307,8 @@ def lookup_book_atena(paraula_clau):
                 book[default_register]=data.rstrip().lstrip()
                 last_register_used=default_register
                 last_registers_dict=None
-
         elif re.search("^[0-9]{3}",register) is None and last_register_used is not None:
+
             #print(re.search("^[0-9]{3}",register))
             #first assure that in the begining and end there are no spurious whitespaces
             line=line.lstrip().rstrip()
@@ -325,6 +324,7 @@ def lookup_book_atena(paraula_clau):
             print("this register is not taken into account:"+register+" data:"+data)
             last_register_used=None
     book["key"]=paraula_clau
+    book["languages"]=["català"]
     print(book)
     return book
 
