@@ -224,7 +224,7 @@ def parse_info(info,these_registers,book,default_register):
                     reg=reg[0]
                 book[reg]=value
                 previous_register_used=reg
-                last_registers_dict=None
+                last_registers_dict=these_registers
     elif info[0] in these_registers.keys():
         print("first data is a key")
         print(info[0])
